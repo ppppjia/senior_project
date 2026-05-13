@@ -1,3 +1,9 @@
+0513 老師鬼影和學生骨架的更新
+在老師的鬼影子上進行了優化，從原先的骨架改動成實心黑色人形剪影
+-在ghost_visualizer.py：加入landmarks_to_silhouette_mask
+在學生的骨架上我們還是保留了最原先的骨架標點，當學生的骨架在老師的人形剪影裏的話對應的骨架會亮起綠燈，反之會亮起紅燈。
+-在ghost_visualizer.py：build_teacher_hull，get_out_of_bounds_indices，draw_warning_light等函式
+
 0502更新重點-除錯,過往舊版本整合,以及使用說明(沛佳)
 -將過往我跟家樂的兩個branch整合再一起,
  之後的guthub就會直接變成由這個版本作為基礎pull下來->調整完(兩個人都確認過)->直接merge進main
