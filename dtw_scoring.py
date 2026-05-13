@@ -1,7 +1,51 @@
+# dtw_scoring.py
+# 計分邏輯：從 100 分開始，學生骨架超出老師鬼影範圍時扣分，不加分。
+
+import config
+
+
+# =============================================================================
+# 分數狀態
+# =============================================================================
+
+class ScoreTracker:
+    """
+    持有目前分數，每幀呼叫 update() 傳入 out_indices。
+    - 分數從 100 開始
+    - 每幀有超出關節 → 依超出數量扣分
+    - 不會加分
+    """
+
+    def __init__(self):
+        self.score = 100.0
+
+    def reset(self):
+        self.score = 100.0
+
+    def update(self, out_indices: set, total_joints: int = 33) -> int:
+        """
+        out_indices : get_out_of_bounds_indices() 回傳的超出關節集合
+        total_joints: 用於計算超出比例（預設 33，MediaPipe 全身）
+        回傳目前整數分數。
+        """
+        if not out_indices:
+            return int(self.score)   # 沒超出 → 不動分數
+
+        # 超出比例 0.0 ~ 1.0
+        out_ratio = len(out_indices) / total_joints
+
+        # 每幀扣分量：比例 × 每幀最大扣分
+        penalty = out_ratio * config.PENALTY_PER_FRAME
+
+        self.score = max(0.0, self.score - penalty)
+        return int(self.score)
+
+
+# =============================================================================
+# 保留原本 buffer 工具（其他地方若有用到不會壞）
+# =============================================================================
+
 from collections import deque
-from scipy.spatial.distance import euclidean
-from fastdtw import fastdtw
-from pose_utils import normalize_pose
 
 BUFFER_SIZE = 15
 
@@ -10,41 +54,9 @@ def create_student_buffer():
     return deque(maxlen=BUFFER_SIZE)
 
 
-def build_flat_pose(landmarks, index_range=range(11, 25)):
-    normalized = normalize_pose(landmarks)
-    flat = []
-    for i in index_range:
-        flat.extend([normalized[i]['x'], normalized[i]['y']])
-    return flat
-
-
 def update_student_buffer(student_buffer, live_landmarks):
+    """保留介面，目前計分不再用 DTW，此函式可留作未來擴充。"""
     if not live_landmarks or len(live_landmarks) != 33:
         return False
-
-    flat_live = build_flat_pose(live_landmarks)
-    student_buffer.append(flat_live)
+    student_buffer.append(live_landmarks)
     return len(student_buffer) == BUFFER_SIZE
-
-
-def get_teacher_window(standard_pose_data, elapsed_ms, lookback_ms=500, lookahead_ms=200):
-    start_ts = max(0, elapsed_ms - lookback_ms)
-    end_ts = elapsed_ms + lookahead_ms
-    return [frame for frame in standard_pose_data if start_ts <= frame['timestamp_ms'] <= end_ts]
-
-
-def compute_dtw_score(student_buffer, teacher_windows, scale=25):
-    if len(student_buffer) < BUFFER_SIZE or not teacher_windows:
-        return None
-
-    teacher_buffer = []
-    for frame_data in teacher_windows:
-        flat_target = build_flat_pose(frame_data['landmarks'])
-        teacher_buffer.append(flat_target)
-
-    if not teacher_buffer:
-        return None
-
-    distance, _ = fastdtw(student_buffer, teacher_buffer, dist=euclidean)
-    raw_score = 100 - (distance / scale)
-    return max(0, min(100, int(raw_score)))

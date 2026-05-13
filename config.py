@@ -14,6 +14,21 @@ SKELETON_COLOR = (255, 255, 255)  # 白色線條
 JOINT_COLOR = (0, 255, 0)        # 綠色關節點
 LINE_THICKNESS = 2
 
+# Ghost 相關設定
+VISIBILITY_THRESHOLD = 0.5        # 關節可見度門檻
+GHOST_ALPHA = 0.45                # 老師 ghost 透明度 (0.0~1.0)
+GHOST_HULL_ALPHA = 0.15           # 安全區域填充透明度
+GHOST_PANEL_RATIO = 0.60          # ghost panel 佔畫面寬度比例
+JOINT_DISTANCE_THRESHOLD = 0.10   # 關節距離門檻 (normalized，可調 0.08~0.15)
+
+# 計分設定
+PENALTY_PER_FRAME = 0.5           # 每幀全部超出時最大扣分（超出比例 × 此值）
+
+# Ghost 顏色
+GHOST_JOINT_COLOR = (50, 50, 50)      # 老師 ghost 關節（黑色）
+GHOST_LINE_COLOR  = (30, 30, 30)      # 老師 ghost 骨架線（黑色）
+OUT_OF_BOUNDS_COLOR = (0, 0, 255)     # 超出範圍標紅
+
 # 骨架連線定義 (維持你們目前的定義)
 POSE_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 7), (0, 4), (4, 5), (5, 6), (6, 8),

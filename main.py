@@ -7,8 +7,9 @@ import mediapipe as mp
 import time
 import numpy as np
 
+import config
 from ghost_visualizer import create_ghost_panel, create_teacher_panel
-from dtw_scoring import create_student_buffer, get_teacher_window, update_student_buffer, compute_dtw_score
+from dtw_scoring import create_student_buffer, update_student_buffer, ScoreTracker
 from speed_controller import draw_speed_controller, get_speed_from_click
 from standard_data import check_and_update_standard, load_standard_pose_data
 
@@ -62,8 +63,9 @@ start_time = 0
 pause_start_time = 0
 pause_elapsed_ms = 0
 total_pause_time = 0
-current_score = 0
+current_score = 100
 student_buffer = create_student_buffer()
+score_tracker = ScoreTracker()
 
 print("\n=== AI Dance Teaching System 已啟動 ===")
 print("操作說明：")
@@ -77,7 +79,9 @@ cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 cv2.resizeWindow(window_name, 1280, 720)
 cv2.setMouseCallback(window_name, mouse_callback)
 
-with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
+     mp_pose.Pose(static_image_mode=False, enable_segmentation=True,
+                  min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose_teacher:
     while cap_webcam.isOpened():
         success_webcam, image_webcam = cap_webcam.read()
         if not success_webcam:
@@ -85,7 +89,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
 
         image_webcam = cv2.flip(image_webcam, 1)
         h, w, _ = image_webcam.shape
-        panel_w = w // 2
+        ghost_w   = int(w * config.GHOST_PANEL_RATIO)   # ghost panel 較大
+        panel_w   = w - ghost_w                          # teacher panel 補足剩餘
         target_frame = None
         live_landmarks = None
         elapsed_ms = 0
@@ -119,6 +124,14 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                                             teacher_preview, panel_w, h,
                                             finish_message=finish_message)
 
+        teacher_seg_mask = None
+        if is_playing and success_teacher and image_teacher is not None:
+            teacher_rgb = cv2.cvtColor(image_teacher, cv2.COLOR_BGR2RGB)
+            teacher_results = pose_teacher.process(teacher_rgb)
+            if teacher_results.segmentation_mask is not None:
+                # mask 值 0.0~1.0，>0.5 為人形區域
+                teacher_seg_mask = (teacher_results.segmentation_mask > 0.5).astype(np.uint8)
+
         image_rgb = cv2.cvtColor(image_webcam, cv2.COLOR_BGR2RGB)
         results = pose.process(image_rgb)
 
@@ -132,16 +145,13 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                     target_frame = frame_data
                     break
 
-            if live_landmarks is not None:
-                buffer_ready = update_student_buffer(student_buffer, live_landmarks)
-                if buffer_ready:
-                    teacher_windows = get_teacher_window(standard_pose_data, elapsed_ms)
-                    score = compute_dtw_score(student_buffer, teacher_windows)
-                    if score is not None:
-                        current_score = score
+        ghost_panel, out_indices = create_ghost_panel(image_webcam, target_frame, live_landmarks,
+                                                      ghost_w, h, is_playing,
+                                                      teacher_seg_mask=teacher_seg_mask)
 
-        ghost_panel = create_ghost_panel(image_webcam, target_frame, live_landmarks,
-                                        panel_w, h, is_playing)
+        # 計分：有超出才扣，不加分
+        if is_playing and live_landmarks is not None:
+            current_score = score_tracker.update(out_indices, total_joints=len(live_landmarks))
 
         combined_image = np.hstack((teacher_panel, ghost_panel))
 
@@ -182,7 +192,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             pause_elapsed_ms = 0
             is_paused = False
             student_buffer.clear()
-            current_score = 0
+            current_score = 100
+            score_tracker.reset()
             cap_teacher.set(cv2.CAP_PROP_POS_FRAMES, 0)
         elif key == 32:
             if is_playing:
