@@ -18,7 +18,7 @@ LINE_THICKNESS = 2
 VISIBILITY_THRESHOLD = 0.5        # 關節可見度門檻
 GHOST_ALPHA = 0.45                # 老師 ghost 透明度 (0.0~1.0)
 GHOST_HULL_ALPHA = 0.15           # 安全區域填充透明度
-GHOST_PANEL_RATIO = 0.60          # ghost panel 佔畫面寬度比例
+GHOST_PANEL_RATIO = 0.55          # ghost panel 佔畫面寬度比例
 JOINT_DISTANCE_THRESHOLD = 0.10   # 關節距離門檻 (normalized，可調 0.08~0.15)
 
 # 計分設定

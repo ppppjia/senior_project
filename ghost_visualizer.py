@@ -33,9 +33,24 @@ def create_panel(image, panel_w, panel_h, placeholder_text=None):
             cv2.putText(panel, placeholder_text, (20, panel_h // 2),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         return panel
+
+    if image.shape[1] == panel_w and image.shape[0] == panel_h:
+        return image.copy()
+
     if image.ndim == 3 and image.shape[2] == 4:
         image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-    return cv2.resize(image, (panel_w, panel_h))
+
+    src_h, src_w = image.shape[:2]
+    scale = min(panel_w / src_w, panel_h / src_h)
+    new_w = max(1, int(src_w * scale))
+    new_h = max(1, int(src_h * scale))
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LANCZOS4)
+
+    panel = np.zeros((panel_h, panel_w, 3), dtype=np.uint8)
+    x_offset = (panel_w - new_w) // 2
+    y_offset = (panel_h - new_h) // 2
+    panel[y_offset:y_offset + new_h, x_offset:x_offset + new_w] = resized
+    return panel
 
 
 # =============================================================================
