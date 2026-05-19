@@ -1,3 +1,13 @@
+
+0513meeting
+老師給的建議
+-demo要算好fit的鬼影的距離
+-容忍度,要多fit才會給正確
+-專題報告書中要有骨架座標的33個點個別代表的身體的定位置(Pose_Landmark_Heavy.task)圖要拿出來
+-joits個數可作為一個門檻值的設定來當容忍度,或是joints分群作分析(ex.teacher的左手的點全部打包,與user的左手的點全部打包下去做分析)
+-6/4meeting(期末報告完的meeting要看一下feedback有無有價值可以取用的建議)(討論暑假的專題進度與目標)
+-暑假的meeting 3個禮拜1次
+------------------------------------------------------------------------------
 0514修影片清晰度&重疊字,speedcontroller改可拖拉
 -將teacher_dance不壓縮=>來達到畫質的維持
 -小修改字體重疊的問題
@@ -121,3 +131,43 @@ Python 的快取目錄，存放編譯後的 .pyc 檔案。用途是加速 Python
 - 如果是 py_video.py，額外計算膝蓋角度並給予文字回饋。
 
 總體流程：資料從影像 → 骨架提取 → 正規化比較 → DTW 評分 → 視覺化輸出。標準資料（dance_standard.json）是預先從老師影片提取的基準，而即時資料來自 WebCam。系統支援即時評分、鬼影教學和速度調整。
+--------------------------------------------------------------------------------------------------------------------------------
+Pose_Landmark_Heavy.task 
+<https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker?hl=zh-tw>
+0 - nose
+1 - left eye (inner)
+2 - left eye
+3 - left eye (outer)
+4 - right eye (inner)
+5 - right eye
+6 - right eye (outer)
+7 - left ear
+8 - right ear
+9 - mouth (left)
+10 - mouth (right)
+11 - left shoulder
+12 - right shoulder
+13 - left elbow
+14 - right elbow
+15 - left wrist
+16 - right wrist
+17 - left pinky
+18 - right pinky
+19 - left index
+20 - right index
+21 - left thumb
+22 - right thumb
+23 - left hip
+24 - right hip
+25 - left knee
+26 - right knee
+27 - left ankle
+28 - right ankle
+29 - left heel
+30 - right heel
+31 - left foot index
+32 - right foot index
+![image](https://github.com/ppppjia/senior_project/blob/main/pose_landmarks_index.png)
+
+
+
