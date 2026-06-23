@@ -1,4 +1,9 @@
-
+0623meeting
+老師給的建議
+-法1:teacher-skeleton 骨頭膨脹
+-法2:鬼影人工找點去對骨架
+![image](https://github.com/ppppjia/senior_project/blob/main/%E4%B8%89%E9%87%8D%E5%B0%8D%E6%87%89.jpg)
+-------------------------------------------------------------------------------
 0513meeting
 老師給的建議
 -demo要算好fit的鬼影的距離
